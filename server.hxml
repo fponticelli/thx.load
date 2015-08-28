@@ -1,0 +1,12 @@
+-cp src
+-cp test
+-lib thx.core
+-lib abe
+-lib jsrequire
+-lib hxnodejs
+-main Server
+-js bin/thx.load.server.js
+
+--macro jsrequire.JSRequire.npmInstall(false)
+
+-cmd node bin/thx.load.server.js
