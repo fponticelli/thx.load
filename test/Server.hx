@@ -9,6 +9,12 @@ class Server implements abe.IRoute {
 
   function new() { }
 
+  @:get("/text")
+  function loadText() {
+    var content = js.node.Fs.readFileSync("assets/test.txt");
+    response.send(content);
+  }
+
   @:get("/kill/")
   function kill() {
     response.sendStatus(200);
