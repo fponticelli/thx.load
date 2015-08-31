@@ -8,9 +8,9 @@ import js.Node;
 
 class TestAll {
   static var cwd : Path = Node.process.cwd();
+  static var fileText = cwd / "assets/test.txt";
   static var host : Url = 'http://localhost:4000';
   static var httpText = host / "text";
-  static var fileText = cwd / "assets/test.txt";
 
   public function new() {}
 

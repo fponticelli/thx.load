@@ -7,8 +7,33 @@ using thx.promise.Promise;
 using thx.http.Request;
 
 class Loader {
+  public static function getJson(path : String) : Promise<Dynamic>
+    return getText(path)
+      .mapSuccessPromise(function(content) {
+        return try {
+          Promise.value(haxe.Json.parse(content));
+        } catch(e : Dynamic) {
+          Promise.error(Error.fromDynamic(e));
+        }
+      });
+
+#if yaml
+  public static function getYaml(path : String, ?options : yaml.ParserOptions) : Promise<Dynamic> {
+    if(null == options) {
+      options = yaml.Parser.options().useObjects();
+    }
+    return getText(path)
+      .mapSuccessPromise(function(content) {
+        return try {
+          Promise.value(yaml.Yaml.parse(content, options));
+        } catch(e : Dynamic) {
+          Promise.error(Error.fromDynamic(e));
+        }
+      });
+  }
+#end
+
   public static function getText(path : String) : Promise<String> {
-    trace('GO GET: $path');
     if(path.startsWith("http://") || path.startsWith("https://")) {
       return makeTextHttpRequest(path);
     } else if(path.startsWith("file://")) {
