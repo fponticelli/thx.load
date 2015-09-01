@@ -15,6 +15,18 @@ class Server implements abe.IRoute {
     response.send(content);
   }
 
+  @:get("/json")
+  function loadJson() {
+    var content = js.node.Fs.readFileSync("assets/sample.json");
+    response.send(content);
+  }
+
+  @:get("/yaml")
+  function loadYaml() {
+    var content = js.node.Fs.readFileSync("assets/sample.yaml");
+    response.send(content);
+  }
+
   @:get("/kill/")
   function kill() {
     response.sendStatus(200);

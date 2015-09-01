@@ -18,7 +18,7 @@ class Loader {
       });
 
 #if yaml
-  public static function getYaml(path : String, ?options : yaml.ParserOptions) : Promise<Dynamic> {
+  public static function getYaml(path : String, ?options : yaml.Parser.ParserOptions) : Promise<Dynamic> {
     if(null == options) {
       options = yaml.Parser.options().useObjects();
     }
@@ -46,7 +46,14 @@ class Loader {
   static function makeTextHttpRequest(url : String) : Promise<String> {
     return Request.get(url)
       .mapSuccessPromise(function(response) {
-        return response.asString();
+        return switch response.statusCode {
+          case 200, 201, 202, 203, 206:
+            response.asString();
+          case 204, 205: // nocontent
+            Promise.value(null);
+          case _:
+            Promise.fail(response.statusText);
+        };
       });
   }
 

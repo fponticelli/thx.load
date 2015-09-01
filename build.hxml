@@ -5,6 +5,7 @@
 -lib thx.http
 -lib thx.promise
 -lib utest
+-lib yaml
 -main TestAll
 -js bin/test.js
 
