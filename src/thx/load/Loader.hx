@@ -1,7 +1,7 @@
 package thx.load;
 
+import haxe.io.Bytes;
 import thx.Error;
-
 using thx.Strings;
 using thx.promise.Promise;
 using thx.http.Request;
@@ -43,6 +43,16 @@ class Loader {
     }
   }
 
+  public static function getBinary(path : String) : Promise<Bytes> {
+    if(path.startsWith("http://") || path.startsWith("https://")) {
+      return makeBinaryHttpRequest(path);
+    } else if(path.startsWith("file://")) {
+      return loadBinaryFile(path.substring(7));
+    } else {
+      return throw new Error('unsupported content path or protocol: $path');
+    }
+  }
+
   static function makeTextHttpRequest(url : String) : Promise<String> {
     return Request.get(url)
       .mapSuccessPromise(function(response) {
@@ -57,9 +67,31 @@ class Loader {
       });
   }
 
+  static function makeBinaryHttpRequest(url : String) : Promise<Bytes> {
+    return Request.get(url)
+      .mapSuccessPromise(function(response) {
+        return switch response.statusCode {
+          case 200, 201, 202, 203, 206:
+            response.asBytes();
+          case 204, 205: // nocontent
+            Promise.value(null);
+          case _:
+            Promise.fail(response.statusText);
+        };
+      });
+  }
+
   static function loadTextFile(path : String) : Promise<String> {
 #if hxnodejs
     return thx.load.nodejs.File.readTextFile(path);
+#else
+    return Promise.fail("this target doesn't support loading files from the filesystem");
+#end
+  }
+
+  static function loadBinaryFile(path : String) : Promise<Bytes> {
+#if hxnodejs
+    return thx.load.nodejs.File.readBinaryFile(path);
 #else
     return Promise.fail("this target doesn't support loading files from the filesystem");
 #end
