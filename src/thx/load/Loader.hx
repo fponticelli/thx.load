@@ -5,6 +5,9 @@ import thx.Error;
 using thx.Strings;
 using thx.promise.Promise;
 using thx.http.Request;
+#if hxnodejs
+using thx.nodejs.io.Buffers;
+#end
 
 class Loader {
   public static function getJson(path : String) : Promise<Dynamic>
@@ -37,7 +40,7 @@ class Loader {
     if(path.startsWith("http://") || path.startsWith("https://")) {
       return makeTextHttpRequest(path);
     } else if(path.startsWith("file://")) {
-      return loadTextFile(path.substring(7));
+      return loadText(path.substring(7));
     } else {
       return throw new Error('unsupported content path or protocol: $path');
     }
@@ -47,11 +50,23 @@ class Loader {
     if(path.startsWith("http://") || path.startsWith("https://")) {
       return makeBinaryHttpRequest(path);
     } else if(path.startsWith("file://")) {
-      return loadBinaryFile(path.substring(7));
+      return loadBinary(path.substring(7));
     } else {
       return throw new Error('unsupported content path or protocol: $path');
     }
   }
+
+#if hxnodejs
+  public static function getBuffer(path : String) : Promise<js.node.Buffer> {
+    if(path.startsWith("http://") || path.startsWith("https://")) {
+      return makeBufferHttpRequest(path);
+    } else if(path.startsWith("file://")) {
+      return loadBuffer(path.substring(7));
+    } else {
+      return throw new Error('unsupported content path or protocol: $path');
+    }
+  }
+#end
 
   static function makeTextHttpRequest(url : String) : Promise<String> {
     return Request.get(url)
@@ -81,19 +96,32 @@ class Loader {
       });
   }
 
-  static function loadTextFile(path : String) : Promise<String> {
+  static function loadText(path : String) : Promise<String> {
 #if hxnodejs
-    return thx.load.nodejs.File.readTextFile(path);
+    return thx.load.nodejs.File.readText(path);
 #else
     return Promise.fail("this target doesn't support loading files from the filesystem");
 #end
   }
 
-  static function loadBinaryFile(path : String) : Promise<Bytes> {
+  static function loadBinary(path : String) : Promise<Bytes> {
 #if hxnodejs
-    return thx.load.nodejs.File.readBinaryFile(path);
+    return thx.load.nodejs.File.readBinary(path);
 #else
     return Promise.fail("this target doesn't support loading files from the filesystem");
 #end
   }
+
+#if hxnodejs
+  static function makeBufferHttpRequest(url : String) : Promise<js.node.Buffer> {
+    return makeBinaryHttpRequest(url)
+      .mapSuccess(function(content) {
+        return content.toBuffer();
+      });
+  }
+
+  static function loadBuffer(path : String) : Promise<js.node.Buffer> {
+    return thx.load.nodejs.File.readBuffer(path);
+  }
+#end
 }

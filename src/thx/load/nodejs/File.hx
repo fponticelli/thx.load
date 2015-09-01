@@ -7,20 +7,24 @@ import js.node.Fs;
 import haxe.io.Bytes;
 
 class File {
-  public static function readTextFile(path : String) : Promise<String> {
+  public static function readText(path : String) : Promise<String> {
     return Promise.create(function(resolve, reject) {
-      Fs.readFile(path, function(err, content) {
+      Fs.readFile(path, { encoding : "utf8" }, function(err, content) {
         if(null != err) return reject(Error.fromDynamic(err));
-        resolve(content.toString());
+        resolve(content);
       });
     });
   }
 
-  public static function readBinaryFile(path : String) : Promise<Bytes> {
+  public static function readBinary(path : String) : Promise<Bytes>
+    return readBuffer(path)
+      .mapSuccess(function(buff) return buff.toBytes());
+
+  public static function readBuffer(path : String) : Promise<js.node.Buffer> {
     return Promise.create(function(resolve, reject) {
-      Fs.readFile(path, cast "binary", function(err, content : js.node.Buffer) {
+      Fs.readFile(path, function(err, content : js.node.Buffer) {
         if(null != err) return reject(Error.fromDynamic(err));
-        resolve(content.toBytes());
+        resolve(content);
       });
     });
   }
