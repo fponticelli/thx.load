@@ -1,0 +1,11 @@
+{
+  "name": "thx.load",
+  "url": "https://github.com/fponticelli/thx.load",
+  "license": "MIT",
+  "classPath": "src",
+  "tags": ["thx", "http", "fs", "general", "cross", "std"],
+  "description": "Library to simplify of loading resources from http and/or the filesystem.",
+  "releasenote": "first release",
+  "version": "0.1.0",
+  "contributors": ["fponticelli"]
+}
