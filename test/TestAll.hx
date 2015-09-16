@@ -42,44 +42,44 @@ class TestAll {
     assertPathLoadsYaml(httpYaml, "bill-to.family", "Dumars");
   }
 
-  function assertPathLoadsJson(path : String, field : String, value : String) {
+  function assertPathLoadsJson(path : String, field : String, value : String, ?pos : haxe.PosInfos) {
     var done = Assert.createAsync(2000);
     Loader.getJson(path)
       .success(function(response) {
-        Assert.isTrue(value == thx.Objects.getPath(response, field), 'expected value $value at $field for $response');
+        Assert.isTrue(value == thx.Objects.getPath(response, field), 'expected value $value at $field for $response', pos);
       })
-      .failure(function(err) Assert.fail(err.toString()))
+      .failure(function(err) Assert.fail(err.toString(), pos))
       .always(done);
   }
 
-  function assertPathLoadsYaml(path : String, field : String, value : String) {
+  function assertPathLoadsYaml(path : String, field : String, value : String, ?pos : haxe.PosInfos) {
     var done = Assert.createAsync(2000);
     Loader.getYaml(path)
       .success(function(response) {
-        Assert.isTrue(value == thx.Objects.getPath(response, field), 'expected value $value at $field for $response');
+        Assert.isTrue(value == thx.Objects.getPath(response, field), 'expected value $value at $field for $response', pos);
       })
-      .failure(function(err) Assert.fail(err.toString()))
+      .failure(function(err) Assert.fail(err.toString(), pos))
       .always(done);
   }
 
-  function assertPathLoadsWithContent(path : String, content : String) {
+  function assertPathLoadsWithContent(path : String, content : String, ?pos : haxe.PosInfos) {
     var done = Assert.createAsync(2000);
     Loader.getText(path)
       .success(function(response) {
-        Assert.stringContains(content, response);
+        Assert.stringContains(content, response, pos);
       })
-      .failure(function(err) Assert.fail(err.toString()))
+      .failure(function(err) Assert.fail(err.toString(), pos))
       .always(done);
   }
 
-  function assertPathFailLoad(path : String) {
+  function assertPathFailLoad(path : String, ?pos : haxe.PosInfos) {
     var done = Assert.createAsync(2000);
     Loader.getText(path)
       .success(function(response) {
         trace(response);
-        Assert.fail("path should not load any resource");
+        Assert.fail("path should not load any resource", pos);
       })
-      .failure(function(err) Assert.isTrue(err.toString().length > 0))
+      .failure(function(err) Assert.isTrue(err.toString().length > 0, pos))
       .always(done);
   }
 
