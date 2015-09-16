@@ -2,7 +2,6 @@ package thx.load.nodejs;
 
 using thx.promise.Promise;
 import thx.Error;
-using thx.nodejs.io.Buffers;
 import js.node.Fs;
 import haxe.io.Bytes;
 
@@ -18,7 +17,7 @@ class File {
 
   public static function readBinary(path : String) : Promise<Bytes>
     return readBuffer(path)
-      .mapSuccess(function(buff) return buff.toBytes());
+      .mapSuccess(function(buff) return Bytes.ofData(buff));
 
   public static function readBuffer(path : String) : Promise<js.node.Buffer> {
     return Promise.create(function(resolve, reject) {

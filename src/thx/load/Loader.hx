@@ -5,9 +5,6 @@ import thx.Error;
 using thx.Strings;
 using thx.promise.Promise;
 using thx.http.Request;
-#if hxnodejs
-using thx.nodejs.io.Buffers;
-#end
 
 class Loader {
   public static function getJson(path : String) : Promise<Dynamic>
@@ -116,7 +113,7 @@ class Loader {
   static function makeBufferHttpRequest(url : String) : Promise<js.node.Buffer> {
     return makeBinaryHttpRequest(url)
       .mapSuccess(function(content) {
-        return content.toBuffer();
+        return content.getData();
       });
   }
 
