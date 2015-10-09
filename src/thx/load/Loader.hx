@@ -7,6 +7,20 @@ using thx.promise.Promise;
 using thx.http.Request;
 
 class Loader {
+  public static function getObject(path : String) : Promise<Dynamic> {
+    var ext = path.split(".").pop().toLowerCase();
+    return switch ext {
+      case "json", "js":
+        return getJson(path);
+#if yaml
+      case "yaml", "yml":
+        return getYaml(path);
+#end
+      case _:
+        return Promise.fail('unrecognized format for $path');
+    }
+  }
+
   public static function getJson(path : String) : Promise<Dynamic>
     return getText(path)
       .mapSuccessPromise(function(content) {
@@ -65,6 +79,12 @@ class Loader {
   }
 #end
 
+  public static function normalizePath(path : String) {
+    if(path.startsWith('http://') || path.startsWith('https://') || path.startsWith('file://'))
+      return path;
+    return 'file://$path';
+  }
+
   static function makeTextHttpRequest(url : String) : Promise<String> {
     return Request.get(url)
       .mapSuccessPromise(function(response) {
@@ -96,6 +116,8 @@ class Loader {
   static function loadText(path : String) : Promise<String> {
 #if hxnodejs
     return thx.load.nodejs.File.readText(path);
+#elseif sys
+    return Promise.value(sys.io.File.getContent(path));
 #else
     return Promise.fail("this target doesn't support loading files from the filesystem");
 #end
@@ -104,6 +126,8 @@ class Loader {
   static function loadBinary(path : String) : Promise<Bytes> {
 #if hxnodejs
     return thx.load.nodejs.File.readBinary(path);
+#elseif sys
+    return Promise.value(sys.io.File.getBytes(path));
 #else
     return Promise.fail("this target doesn't support loading files from the filesystem");
 #end
