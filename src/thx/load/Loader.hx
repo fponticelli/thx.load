@@ -16,6 +16,8 @@ class Loader {
       case "yaml", "yml":
         return getYaml(path);
 #end
+      case "csv":
+        return getCsv(path);
       case _:
         return Promise.fail('unrecognized format for $path');
     }
@@ -46,6 +48,16 @@ class Loader {
       });
   }
 #end
+
+  public static function getCsv(path : String) : Promise<Array<Array<String>>>
+    return getText(path)
+      .mapSuccessPromise(function(content) {
+        return try {
+          Promise.value(thx.csv.Csv.decode(content));
+        } catch(e : Dynamic) {
+          Promise.error(Error.fromDynamic(e));
+        }
+      });
 
   public static function getText(path : String) : Promise<String> {
     if(path.startsWith("http://") || path.startsWith("https://")) {
