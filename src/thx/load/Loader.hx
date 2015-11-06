@@ -97,6 +97,12 @@ class Loader {
   public static function normalizePath(path : String) {
     if(path.startsWith('http://') || path.startsWith('https://') || path.startsWith('file://'))
       return path;
+#if js
+    var host : String = untyped __js__("(typeof window != 'undefined') ? window.location.host : null");
+    if(null != host) {
+      return '${untyped __js__("window.location.protocol")}//$host$path';
+    }
+#end
     return 'file://$path';
   }
 
