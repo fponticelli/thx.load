@@ -100,6 +100,8 @@ class Loader {
 #if js
     var host : String = untyped __js__("(typeof window != 'undefined') ? window.location.host : null");
     if(null != host) {
+      if(!path.startsWith("/"))
+        path = (untyped __js__("window.location.pathname") : String).split("/").slice(0, -1).concat([path]).join("/");
       return '${untyped __js__("window.location.protocol")}//$host$path';
     }
 #end
