@@ -17,7 +17,7 @@ class File {
 
   public static function readBinary(path : String) : Promise<Bytes>
     return readBuffer(path)
-      .mapSuccess(function(buff) return Bytes.ofData(buff));
+      .mapSuccess(function(buff) return Bytes.ofData(thx.http.core.NodeJSRequest.NodeJSResponse.bufferToArrayBuffer(buff)));
 
   public static function readBuffer(path : String) : Promise<js.node.Buffer> {
     return Promise.create(function(resolve, reject) {

@@ -160,7 +160,7 @@ class Loader {
   static function makeBufferHttpRequest(url : String) : Promise<js.node.Buffer> {
     return makeBinaryHttpRequest(url)
       .mapSuccess(function(content) {
-        return content.getData();
+        return thx.http.core.NodeJSRequest.arrayBufferToBuffer(content.getData());
       });
   }
 
