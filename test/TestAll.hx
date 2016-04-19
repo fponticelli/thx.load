@@ -11,7 +11,7 @@ class TestAll {
   static var fileText = cwd / "assets/test.txt";
   static var fileJson = cwd / "assets/sample.json";
   static var fileYaml = cwd / "assets/sample.yaml";
-  static var host : Url = 'http://localhost:4000';
+  static var host : Url = 'http://localhost:1651';
   static var httpText = host / "text";
   static var httpJson = host / "json";
   static var httpYaml = host / "yaml";

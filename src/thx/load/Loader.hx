@@ -25,23 +25,24 @@ class Loader {
     }
   }
 
-  public static function getJson(path : String) : Promise<Dynamic>
-    return getText(path)
-      .mapSuccessPromise(function(content) {
-        return try {
-          Promise.value(haxe.Json.parse(content));
-        } catch(e : Dynamic) {
-          Promise.error(Error.fromDynamic(e));
-        }
-      });
+  public static function getJson(path : String) : Promise<Dynamic> {
+    if(path.startsWith("http://") || path.startsWith("https://")) {
+      return Request.getJson(path).body;
+    } else if(path.startsWith("file://")) {
+      return loadText(path.substring(7)).map(haxe.Json.parse);
+    } else {
+      return throw new Error('unsupported content path or protocol: $path');
+    }
+  }
 
 #if yaml
   public static function getYaml(path : String, ?options : yaml.Parser.ParserOptions) : Promise<Dynamic> {
     if(null == options) {
       options = yaml.Parser.options().useObjects();
     }
-    return getText(path)
-      .mapSuccessPromise(function(content) {
+    return Request.getText(path)
+      .body
+      .flatMap(function(content) {
         return try {
           Promise.value(yaml.Yaml.parse(content, options));
         } catch(e : Dynamic) {
@@ -53,7 +54,7 @@ class Loader {
 #if thx_csv
   public static function getCsv(path : String) : Promise<Array<Array<String>>>
     return getText(path)
-      .mapSuccessPromise(function(content) {
+      .flatMap(function(content) {
         return try {
           Promise.value(thx.csv.Csv.decode(content));
         } catch(e : Dynamic) {
@@ -64,7 +65,7 @@ class Loader {
 
   public static function getText(path : String) : Promise<String> {
     if(path.startsWith("http://") || path.startsWith("https://")) {
-      return makeTextHttpRequest(path);
+      return Request.getText(path).body;
     } else if(path.startsWith("file://")) {
       return loadText(path.substring(7));
     } else {
@@ -74,7 +75,7 @@ class Loader {
 
   public static function getBinary(path : String) : Promise<Bytes> {
     if(path.startsWith("http://") || path.startsWith("https://")) {
-      return makeBinaryHttpRequest(path);
+      return Request.getBytes(path).body;
     } else if(path.startsWith("file://")) {
       return loadBinary(path.substring(7));
     } else {
@@ -85,7 +86,7 @@ class Loader {
 #if hxnodejs
   public static function getBuffer(path : String) : Promise<js.node.Buffer> {
     if(path.startsWith("http://") || path.startsWith("https://")) {
-      return makeBufferHttpRequest(path);
+      return Request.get(path, ResponseTypeJSBuffer).body;
     } else if(path.startsWith("file://")) {
       return loadBuffer(path.substring(7));
     } else {
@@ -107,10 +108,10 @@ class Loader {
 #end
     return 'file://$path';
   }
-
+/*
   static function makeTextHttpRequest(url : String) : Promise<String> {
     return Request.get(url)
-      .mapSuccessPromise(function(response) {
+      .flatMap(function(response) {
         return switch response.statusCode {
           case 200, 201, 202, 203, 206:
             response.asString();
@@ -124,7 +125,7 @@ class Loader {
 
   static function makeBinaryHttpRequest(url : String) : Promise<Bytes> {
     return Request.get(url)
-      .mapSuccessPromise(function(response) {
+      .flatMap(function(response) {
         return switch response.statusCode {
           case 200, 201, 202, 203, 206:
             response.asBytes();
@@ -135,7 +136,7 @@ class Loader {
         };
       });
   }
-
+*/
   static function loadText(path : String) : Promise<String> {
 #if hxnodejs
     return thx.load.nodejs.File.readText(path);
@@ -155,17 +156,17 @@ class Loader {
     return Promise.fail("this target doesn't support loading files from the filesystem");
 #end
   }
-
 #if hxnodejs
+/*
   static function makeBufferHttpRequest(url : String) : Promise<js.node.Buffer> {
     return makeBinaryHttpRequest(url)
-      .mapSuccess(function(content) {
+      .map(function(content) {
         return thx.http.core.NodeJSRequest.arrayBufferToBuffer(content.getData());
       });
   }
-
-  static function loadBuffer(path : String) : Promise<js.node.Buffer> {
-    return thx.load.nodejs.File.readBuffer(path);
-  }
+*/
+static function loadBuffer(path : String) : Promise<js.node.Buffer> {
+  return thx.load.nodejs.File.readBuffer(path);
+}
 #end
 }
