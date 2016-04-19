@@ -75,7 +75,7 @@ class Loader {
 
   public static function getBinary(path : String) : Promise<Bytes> {
     if(path.startsWith("http://") || path.startsWith("https://")) {
-      return Request.getBytes(path).body;
+      return Request.getBinary(path).body;
     } else if(path.startsWith("file://")) {
       return loadBinary(path.substring(7));
     } else {
@@ -108,35 +108,6 @@ class Loader {
 #end
     return 'file://$path';
   }
-/*
-  static function makeTextHttpRequest(url : String) : Promise<String> {
-    return Request.get(url)
-      .flatMap(function(response) {
-        return switch response.statusCode {
-          case 200, 201, 202, 203, 206:
-            response.asString();
-          case 204, 205: // nocontent
-            Promise.value(null);
-          case _:
-            Promise.fail(response.statusText);
-        };
-      });
-  }
-
-  static function makeBinaryHttpRequest(url : String) : Promise<Bytes> {
-    return Request.get(url)
-      .flatMap(function(response) {
-        return switch response.statusCode {
-          case 200, 201, 202, 203, 206:
-            response.asBytes();
-          case 204, 205: // nocontent
-            Promise.value(null);
-          case _:
-            Promise.fail(response.statusText);
-        };
-      });
-  }
-*/
   static function loadText(path : String) : Promise<String> {
 #if hxnodejs
     return thx.load.nodejs.File.readText(path);
