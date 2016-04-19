@@ -86,7 +86,7 @@ class Loader {
 #if hxnodejs
   public static function getBuffer(path : String) : Promise<js.node.Buffer> {
     if(path.startsWith("http://") || path.startsWith("https://")) {
-      return Request.get(path, ResponseTypeJSBuffer).body;
+      return Request.get(path, JSBuffer).body;
     } else if(path.startsWith("file://")) {
       return loadBuffer(path.substring(7));
     } else {
@@ -128,16 +128,7 @@ class Loader {
 #end
   }
 #if hxnodejs
-/*
-  static function makeBufferHttpRequest(url : String) : Promise<js.node.Buffer> {
-    return makeBinaryHttpRequest(url)
-      .map(function(content) {
-        return thx.http.core.NodeJSRequest.arrayBufferToBuffer(content.getData());
-      });
-  }
-*/
-static function loadBuffer(path : String) : Promise<js.node.Buffer> {
-  return thx.load.nodejs.File.readBuffer(path);
-}
+  static function loadBuffer(path : String) : Promise<js.node.Buffer>
+    return thx.load.nodejs.File.readBuffer(path);
 #end
 }
