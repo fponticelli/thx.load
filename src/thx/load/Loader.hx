@@ -26,9 +26,9 @@ class Loader {
   }
 
   public static function getJson(path : String) : Promise<Dynamic> {
-    if(path.startsWith("http://") || path.startsWith("https://")) {
+    if(isHttpPath(path)) {
       return Request.getJson(path).body;
-    } else if(path.startsWith("file://")) {
+    } else if(isFilePath(path)) {
       return loadText(path.substring(7)).map(haxe.Json.parse);
     } else {
       return throw new Error('unsupported content path or protocol: $path');
@@ -63,36 +63,24 @@ class Loader {
       });
 #end
 
-  public static function getText(path : String) : Promise<String> {
-    if(path.startsWith("http://") || path.startsWith("https://")) {
-      return Request.getText(path).body;
-    } else if(path.startsWith("file://")) {
-      return loadText(path.substring(7));
-    } else {
-      return throw new Error('unsupported content path or protocol: $path');
-    }
-  }
+  public static function getText(path : String) : Promise<String>
+    return cata(
+      function(path) return Request.getText(path).body,
+      loadText
+    )(path);
 
-  public static function getBinary(path : String) : Promise<Bytes> {
-    if(path.startsWith("http://") || path.startsWith("https://")) {
-      return Request.getBinary(path).body;
-    } else if(path.startsWith("file://")) {
-      return loadBinary(path.substring(7));
-    } else {
-      return throw new Error('unsupported content path or protocol: $path');
-    }
-  }
+  public static function getBinary(path : String) : Promise<Bytes>
+    return cata(
+      function(path) return Request.getBinary(path).body,
+      loadBinary
+    )(path);
 
 #if hxnodejs
-  public static function getBuffer(path : String) : Promise<js.node.Buffer> {
-    if(path.startsWith("http://") || path.startsWith("https://")) {
-      return Request.get(path, JSBuffer).body;
-    } else if(path.startsWith("file://")) {
-      return loadBuffer(path.substring(7));
-    } else {
-      return throw new Error('unsupported content path or protocol: $path');
-    }
-  }
+  public static function getBuffer(path : String) : Promise<js.node.Buffer>
+    return cata(
+      function(path) return Request.getJSBuffer(path).body,
+      loadBuffer
+    )(path);
 #end
 
   public static function normalizePath(path : String) {
@@ -108,6 +96,24 @@ class Loader {
 #end
     return 'file://$path';
   }
+
+  static function cata<T>(httpHandler : String -> Promise<T>, fileHandler : String -> Promise<T>) : String -> Promise<T> {
+    return function(path : String) {
+      if(isHttpPath(path))
+        return httpHandler(path);
+      else if(isFilePath(path))
+        return fileHandler(path.substring(7));
+      else
+        return throw new Error('unsupported protocol for path: $path');
+    };
+  }
+
+  static function isHttpPath(path : String)
+    return path.startsWith("http://") || path.startsWith("https://");
+
+  static function isFilePath(path : String)
+    return path.startsWith("file://");
+
   static function loadText(path : String) : Promise<String> {
 #if hxnodejs
     return thx.load.nodejs.File.readText(path);
